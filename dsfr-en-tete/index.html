@@ -52,36 +52,38 @@
     <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
 
     <script>
+        // Configuration des colonnes
         grist.ready({
             columns: [
-                { name: "Perimetre_academique2", title: "Bloc marque", type: "Text", optional: true },
-                { name: "Nom_du_projet", title: "Nom du projet", type: "Text", optional: true },
-                { name: "Direction_Service", title: "Direction / Service", type: "Text", optional: true },
-                { name: "Titre_complementaire", title: "Titre complémentaire", type: "Text", optional: true },
-                { name: "Description_du_besoin", title: "Description du besoin", type: "Text", optional: true },
-                { name: "logo", title: "Logo", type: "Attachments", optional: true }
+                { name: "intitule_officiel", title: "Bloc marque", type: "Text", optional: true, description: "Texte affiché dans le bloc marque" },
+                { name: "nom_service", title: "Nom du service", type: "Text", optional: true, description: "Titre principal" },
+                { name: "titre_composante_1", title: "Titre composante 1", type: "Text", optional: true, description: "Deuxième élément du titre" },
+                { name: "titre_composante_2", title: "Titre composante 2", type: "Text", optional: true, description: "Troisième élément du titre" },
+                { name: "baseline", title: "Baseline", type: "Text", optional: true, description: "Sous-titre" },
+                { name: "logo", title: "Logo", type: "Attachments", optional: true, description: "Logo à afficher à droite du bloc marque" }
             ],
             requiredAccess: 'full'
         });
 
-        function getBlocMarque(perimetre) {
-            const value = String(perimetre || "").trim();
+        function formatIntitule(intitule) {
+            const value = String(intitule || '').trim();
 
-            if (value === "Région académique Occitanie") {
-                return "Région académique<br>Occitanie";
+            if (value === 'Région académique Occitanie') {
+                return 'Région académique<br>Occitanie';
             }
-
-            if (value === "Académie de Toulouse") {
-                return "Académie<br>de Toulouse";
+            if (value === 'Académie de Toulouse') {
+                return 'Académie<br>de Toulouse';
             }
-
-            if (value === "Académie de Montpellier") {
-                return "Académie<br>de Montpellier";
+            if (value === 'Académie de Montpellier') {
+                return 'Académie<br>de Montpellier';
             }
-
-            return "République<br>Française";
+            if (value) {
+                return value.replace(/\n/g, '<br>');
+            }
+            return 'République<br>Française';
         }
 
+        // Fonction pour gérer l'affichage du logo
         async function updateLogo(logoAttachments) {
             const operatorSection = document.getElementById('operator-section');
             const logoImg = document.getElementById('logo-img');
@@ -110,18 +112,18 @@
             }
         }
 
+        // Fonction pour mettre à jour tous les contenus
         async function updateContent(mapped) {
-            const intitule = getBlocMarque(mapped?.Perimetre_academique2);
-            document.getElementById('intitule-officiel').innerHTML = intitule;
+            document.getElementById('intitule-officiel').innerHTML = formatIntitule(mapped?.intitule_officiel);
 
             const titre = [
-                mapped?.Nom_du_projet || '',
-                mapped?.Direction_Service || '',
-                mapped?.Titre_complementaire || ''
+                mapped?.nom_service || '',
+                mapped?.titre_composante_1 || '',
+                mapped?.titre_composante_2 || ''
             ].filter(v => String(v).trim() !== '').join(' - ');
 
             document.getElementById('nom-service').textContent = titre;
-            document.getElementById('baseline').textContent = mapped?.Description_du_besoin || '';
+            document.getElementById('baseline').textContent = mapped?.baseline || '';
 
             if (mapped && mapped.logo) {
                 await updateLogo(mapped.logo);
@@ -130,6 +132,7 @@
             }
         }
 
+        // Mise à jour des données - prend toujours le premier enregistrement
         grist.onRecords(async function (records, mappings) {
             if (records && records.length > 0) {
                 const mapped = grist.mapColumnNames(records[0], mappings);
