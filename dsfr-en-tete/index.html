@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>En-tête DSFR Grist</title>
+
+  <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
+  <style>
+    :root {
+      --rf-blue: #000091;
+      --rf-text: #161616;
+      --rf-muted: #3a3a3a;
+      --rf-border: #dddddd;
+      --rf-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--rf-bg);
+      color: var(--rf-text);
+      font-family: Marianne, Arial, Helvetica, sans-serif;
+    }
+
+    .rf-header {
+      width: 100%;
+      background: #fff;
+      border-bottom: 1px solid var(--rf-border);
+      padding: 1rem 0;
+    }
+
+    .rf-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .rf-brand {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .rf-brand-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .rf-logo {
+      display: inline-block;
+      padding-left: 0.75rem;
+      border-left: 0.25rem solid var(--rf-blue);
+      font-weight: 700;
+      font-size: 0.95rem;
+      line-height: 1.15;
+      white-space: nowrap;
+      min-width: 120px;
+    }
+
+    .rf-operator {
+      display: none;
+      align-items: center;
+      min-height: 3rem;
+    }
+
+    .rf-operator img {
+      display: block;
+      max-width: 145px;
+      max-height: 80px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .rf-service {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      min-width: 240px;
+      flex: 1 1 auto;
+    }
+
+    .rf-service-title {
+      margin: 0;
+      font-size: 1.45rem;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .rf-service-tagline {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.5;
+      color: var(--rf-muted);
+    }
+
+    .rf-divider {
+      margin-top: 1rem;
+      height: 1px;
+      width: 100%;
+      background: var(--rf-blue);
+    }
+
+    @media (max-width: 768px) {
+      .rf-container {
+        padding: 0 1rem;
+      }
+
+      .rf-brand {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .rf-service-title {
+        font-size: 1.2rem;
+      }
+
+      .rf-service-tagline {
+        font-size: 0.95rem;
+      }
+
+      .rf-operator img {
+        max-width: 120px;
+        max-height: 64px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="rf-header" role="banner">
+    <div class="rf-container">
+      <div class="rf-brand">
+        <div class="rf-brand-top">
+          <div class="rf-logo" id="bloc-marque">
+            République<br>Française
+          </div>
+
+          <div class="rf-operator" id="logo-wrapper">
+            <img id="logo-img" alt="Logo">
+          </div>
+        </div>
+
+        <div class="rf-service">
+          <h1 class="rf-service-title" id="service-title"></h1>
+          <p class="rf-service-tagline" id="service-tagline"></p>
+        </div>
+      </div>
+
+      <div class="rf-divider"></div>
+    </div>
+  </header>
+
+  <script>
+    grist.ready({
+      columns: [
+        { name: "Perimetre_academique2", type: "Text", optional: true },
+        { name: "Nom_du_projet", type: "Text", optional: true },
+        { name: "Direction_Service", type: "Text", optional: true },
+        { name: "Titre_complementaire", type: "Text", optional: true },
+        { name: "Description_du_besoin", type: "Text", optional: true }
+      ],
+      requiredAccess: "read table"
+    });
+
+    function setText(id, value) {
+      document.getElementById(id).textContent = value || "";
+    }
+
+    function setHtml(id, value) {
+      document.getElementById(id).innerHTML = value || "";
+    }
+
+    function getBlocMarque(perimetre) {
+      const value = String(perimetre || "").trim();
+
+      if (value === "Région académique Occitanie") {
+        return "Région académique<br>Occitanie";
+      }
+
+      if (value === "Académie de Toulouse") {
+        return "Académie<br>de Toulouse";
+      }
+
+      if (value === "Académie de Montpellier") {
+        return "Académie<br>de Montpellier";
+      }
+
+      return "République<br>Française";
+    }
+
+    function updateHeader(record, mappings) {
+      const mapped = grist.mapColumnNames(record || {}, mappings);
+
+      const perimetre = mapped?.Perimetre_academique2 || "";
+      const nomProjet = mapped?.Nom_du_projet || "";
+      const direction = mapped?.Direction_Service || "";
+      const titreComplementaire = mapped?.Titre_complementaire || "";
+      const description = mapped?.Description_du_besoin || "";
+
+      setHtml("bloc-marque", getBlocMarque(perimetre));
+
+      const titre = [nomProjet, direction, titreComplementaire]
+        .filter(v => String(v || "").trim() !== "")
+        .join(" - ");
+
+      setText("service-title", titre);
+      setText("service-tagline", description);
+
+      // Si un jour tu veux réutiliser Perimetre_academique2 comme URL logo,
+      // il faudra une autre colonne dédiée au logo.
+      document.getElementById("logo-wrapper").style.display = "none";
+    }
+
+    grist.onRecord(function(record, mappings) {
+      updateHeader(record, mappings);
+    });
+  </script>
+</body>
+</html>
