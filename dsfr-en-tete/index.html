@@ -52,21 +52,37 @@
     <script src="https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.13.1/dist/dsfr/dsfr.nomodule.min.js" nomodule></script>
 
     <script>
-        // Configuration des colonnes
         grist.ready({
             columns: [
-                { name: "intitule_officiel", title: "Bloc marque", type: "Text", optional: true, description: "Texte affiché dans le bloc marque" },
-                { name: "nom_service", title: "Nom du service", type: "Text", optional: true, description: "Titre principal" },
-                { name: "titre_composante_1", title: "Titre composante 1", type: "Text", optional: true, description: "Deuxième élément du titre" },
-                { name: "titre_composante_2", title: "Titre composante 2", type: "Text", optional: true, description: "Troisième élément du titre" },
-                { name: "baseline", title: "Baseline", type: "Text", optional: true, description: "Sous-titre" },
+                { name: "intitule_officiel", title: "Bloc marque", type: "Any", optional: true, description: "Texte affiché dans le bloc marque" },
+                { name: "nom_service", title: "Nom du service", type: "Any", optional: true, description: "Titre principal" },
+                { name: "titre_composante_1", title: "Titre composante 1", type: "Any", optional: true, description: "Deuxième élément du titre" },
+                { name: "titre_composante_2", title: "Titre composante 2", type: "Any", optional: true, description: "Troisième élément du titre" },
+                { name: "baseline", title: "Baseline", type: "Any", optional: true, description: "Sous-titre" },
                 { name: "logo", title: "Logo", type: "Attachments", optional: true, description: "Logo à afficher à droite du bloc marque" }
             ],
             requiredAccess: 'full'
         });
 
+        function toDisplayString(value) {
+            if (value === null || value === undefined) return '';
+            if (Array.isArray(value)) {
+                return value.map(v => toDisplayString(v)).filter(Boolean).join(', ');
+            }
+            if (typeof value === 'object') {
+                if (value.displayValue !== undefined && value.displayValue !== null) {
+                    return String(value.displayValue);
+                }
+                if (value.name !== undefined && value.name !== null) {
+                    return String(value.name);
+                }
+                return String(value);
+            }
+            return String(value);
+        }
+
         function formatIntitule(intitule) {
-            const value = String(intitule || '').trim();
+            const value = toDisplayString(intitule).trim();
 
             if (value === 'Région académique Occitanie') {
                 return 'Région académique<br>Occitanie';
@@ -83,7 +99,6 @@
             return 'République<br>Française';
         }
 
-        // Fonction pour gérer l'affichage du logo
         async function updateLogo(logoAttachments) {
             const operatorSection = document.getElementById('operator-section');
             const logoImg = document.getElementById('logo-img');
@@ -112,18 +127,17 @@
             }
         }
 
-        // Fonction pour mettre à jour tous les contenus
         async function updateContent(mapped) {
             document.getElementById('intitule-officiel').innerHTML = formatIntitule(mapped?.intitule_officiel);
 
             const titre = [
-                mapped?.nom_service || '',
-                mapped?.titre_composante_1 || '',
-                mapped?.titre_composante_2 || ''
-            ].filter(v => String(v).trim() !== '').join(' - ');
+                toDisplayString(mapped?.nom_service),
+                toDisplayString(mapped?.titre_composante_1),
+                toDisplayString(mapped?.titre_composante_2)
+            ].filter(v => v.trim() !== '').join(' - ');
 
             document.getElementById('nom-service').textContent = titre;
-            document.getElementById('baseline').textContent = mapped?.baseline || '';
+            document.getElementById('baseline').textContent = toDisplayString(mapped?.baseline);
 
             if (mapped && mapped.logo) {
                 await updateLogo(mapped.logo);
@@ -132,7 +146,6 @@
             }
         }
 
-        // Mise à jour des données - prend toujours le premier enregistrement
         grist.onRecords(async function (records, mappings) {
             if (records && records.length > 0) {
                 const mapped = grist.mapColumnNames(records[0], mappings);
