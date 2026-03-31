@@ -63,11 +63,10 @@
             ],
             requiredAccess: 'full'
         });
-        
+
         function toDisplayString(value) {
             if (value === null || value === undefined) return '';
 
-            // Liste de choix / listes / tableaux
             if (Array.isArray(value)) {
                 return value
                     .map(v => toDisplayString(v))
@@ -75,7 +74,6 @@
                     .join(', ');
             }
 
-            // Objets Grist (références, choix enrichis, displayValue, etc.)
             if (typeof value === 'object') {
                 if (value.displayValue !== undefined && value.displayValue !== null) {
                     return String(value.displayValue);
@@ -92,7 +90,6 @@
                 return '';
             }
 
-            // Booléens, nombres, texte, choix simples
             return String(value);
         }
 
