@@ -54,12 +54,12 @@
     <script>
         grist.ready({
             columns: [
-                { name: "intitule_officiel", title: "Bloc marque", type: "Any", optional: true, description: "Texte affiché dans le bloc marque" },
-                { name: "nom_service", title: "Nom du service", type: "Any", optional: true, description: "Titre principal" },
-                { name: "titre_composante_1", title: "Titre composante 1", type: "Any", optional: true, description: "Deuxième élément du titre" },
-                { name: "titre_composante_2", title: "Titre composante 2", type: "Any", optional: true, description: "Troisième élément du titre" },
-                { name: "baseline", title: "Baseline", type: "Any", optional: true, description: "Sous-titre" },
-                { name: "logo", title: "Logo", type: "Attachments", optional: true, description: "Logo à afficher à droite du bloc marque" }
+                "intitule_officiel",
+                "nom_service",
+                "titre_composante_1",
+                "titre_composante_2",
+                "baseline",
+                "logo"
             ],
             requiredAccess: 'full'
         });
