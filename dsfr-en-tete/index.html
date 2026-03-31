@@ -158,15 +158,15 @@
             }
         }
 
-        grist.onRecords(async function (records, mappings) {
-            if (records && records.length > 0) {
-                const mapped = grist.mapColumnNames(records[0], mappings);
+        grist.onRecord(async function (record, mappings) {
+            if (record) {
+                const mapped = grist.mapColumnNames(record, mappings);
                 await updateContent(mapped);
             } else {
                 await updateContent(null);
             }
         });
-    </script>
+</script>
 </body>
 
 </html>
