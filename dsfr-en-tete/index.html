@@ -63,21 +63,36 @@
             ],
             requiredAccess: 'full'
         });
-
+        
         function toDisplayString(value) {
             if (value === null || value === undefined) return '';
+
+            // Liste de choix / listes / tableaux
             if (Array.isArray(value)) {
-                return value.map(v => toDisplayString(v)).filter(Boolean).join(', ');
+                return value
+                    .map(v => toDisplayString(v))
+                    .filter(v => v && v.trim() !== '')
+                    .join(', ');
             }
+
+            // Objets Grist (références, choix enrichis, displayValue, etc.)
             if (typeof value === 'object') {
                 if (value.displayValue !== undefined && value.displayValue !== null) {
                     return String(value.displayValue);
                 }
+                if (value.label !== undefined && value.label !== null) {
+                    return String(value.label);
+                }
                 if (value.name !== undefined && value.name !== null) {
                     return String(value.name);
                 }
-                return String(value);
+                if (value.value !== undefined && value.value !== null) {
+                    return String(value.value);
+                }
+                return '';
             }
+
+            // Booléens, nombres, texte, choix simples
             return String(value);
         }
 
