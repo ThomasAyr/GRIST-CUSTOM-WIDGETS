@@ -61,7 +61,8 @@
                 "baseline",
                 "logo"
             ],
-            requiredAccess: 'full'
+            requiredAccess: 'full',
+            allowSelectBy: true
         });
 
         function toDisplayString(value) {
@@ -75,19 +76,16 @@
             }
 
             if (typeof value === 'object') {
-                if (value.displayValue !== undefined && value.displayValue !== null) {
-                    return String(value.displayValue);
+                if ('displayValue' in value && value.displayValue != null) return String(value.displayValue);
+                if ('label' in value && value.label != null) return String(value.label);
+                if ('name' in value && value.name != null) return String(value.name);
+                if ('value' in value && value.value != null) return String(value.value);
+
+                try {
+                    return JSON.stringify(value);
+                } catch {
+                    return '';
                 }
-                if (value.label !== undefined && value.label !== null) {
-                    return String(value.label);
-                }
-                if (value.name !== undefined && value.name !== null) {
-                    return String(value.name);
-                }
-                if (value.value !== undefined && value.value !== null) {
-                    return String(value.value);
-                }
-                return '';
             }
 
             return String(value);
@@ -159,14 +157,18 @@
         }
 
         grist.onRecord(async function (record, mappings) {
+            console.log('record reçu :', record);
+            console.log('mappings :', mappings);
+
             if (record) {
                 const mapped = grist.mapColumnNames(record, mappings);
+                console.log('mapped :', mapped);
                 await updateContent(mapped);
             } else {
                 await updateContent(null);
             }
         });
-</script>
+    </script>
 </body>
 
 </html>
